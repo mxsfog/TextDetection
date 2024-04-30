@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import Conf
 from Dataset import ImageDataset, train_collate_func, val_test_collate_func
-from decoder import ctc_decoder
+from Decoder import ctc_decoder
 from Model import CRNN
 
 def main():
