@@ -152,6 +152,7 @@ def val(model: nn.Module,
 
             if ''.join(predicted_chars[0]) == target[0].lower():
                 total_cor += 1
+                
     acc = (total_cor / total_files) * 100
     print(f'Accuracy: {acc::2f} %')
 
@@ -169,6 +170,7 @@ class Summary(Enum):
     AVERAGE = 1
     SUM = 2
     COUNT =3
+    
 class AverageMeter(object):
     def __int__(self, name, fmt=':f', summary_type=Summary.AVERAGE):
         self.name = name
