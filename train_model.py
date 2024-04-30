@@ -22,8 +22,7 @@ def main():
 
 def load_dataset() -> [DataLoader, DataLoader]:
 
-    train_dataset = ImageDataset(dataroot=Conf.mode_config['train']['train_dataroot'],
-                                 annotation_file_name=Conf.mode_config['train']['annotation_train_file_name'],
+    train_dataset = ImageDataset(dataset=Conf.mode_config['train_dataroot'],
                                  labels_dict=Conf.labels,
                                  image_width=Conf.model_image_width,
                                  image_height=Conf.model_image_height,
@@ -31,8 +30,7 @@ def load_dataset() -> [DataLoader, DataLoader]:
                                  std=Conf.std,
                                  mode="train")
 
-    test_dataset = ImageDataset(dataroot=Conf.mode_config['test']['train_dataroot'],
-                                annotation_file_name=Conf.mode_config['test']['annotation_train_file_name'],
+    test_dataset = ImageDataset(dataset=Conf.mode_config['dataroot'],
                                 labels_dict=Conf.labels,
                                 image_width=Conf.model_image_width,
                                 image_height=Conf.model_image_height,
@@ -43,7 +41,7 @@ def load_dataset() -> [DataLoader, DataLoader]:
     train_dataloader = DataLoader(dataset=train_dataset,
                                   batch_size=64,
                                   shuffle=True,
-                                  num_workers=Conf.mode_config['train']['num_workers'],
+                                  num_workers=Conf.mode_config['num_workers'],
                                   collate_fn=train_collate_func,
                                   pin_memory=True,
                                   drop_last=True,
@@ -125,7 +123,7 @@ def train(model: nn.Module,
         if batch_index % Conf.mode_config['train']["print_frequency"]:
             writer.add_scalar("Train/Loss", loss.item(), batch_index + epoch * batches + 1)
             progress.display(batch_index)
-
+    torch.save(model, 'D:\CRNN')
 
 def val(model: nn.Module,
         dataloader: DataLoader,

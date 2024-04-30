@@ -7,7 +7,9 @@ import ImageProcessing
 from pathlib import Path
 
 __all__ = [
-
+    "ImageDataset",
+    "train_collate_func",
+    "val_test_collate_func"
 ]
 
 
@@ -28,11 +30,10 @@ def val_test_collate_func(batch):
 
 
 class ImageDataset(Dataset):
-    def __init__(self, dataroot: str, annotation_file_name: str, labels_dict: dict = None,
+    def __init__(self, dataset, labels_dict: dict = None,
                  image_width: int = None, image_height: int = None, mean: list = None,
                  std: list = None, mode: str = "train"):
-        self.dataroot = Path(dataroot)  # Use Pathlib for robust path handling
-        self.annotation_file_name = self.dataroot / annotation_file_name  # Combine paths
+        self.dataset = dataset
         self.labels_dict = labels_dict
         self.image_width = image_width
         self.image_height = image_height
@@ -40,27 +41,21 @@ class ImageDataset(Dataset):
         self.std = std
         self.mode = mode
 
-        # Load image paths and targets directly
-        self.images_path, self.images_target = self._load_data()
+        self.images = self._load_data()
 
         if self.mode == "train" and self.labels_dict is None:
             raise ValueError("Labels dictionary required for training mode")
 
     def _load_data(self):
-        images_path = []
-        images_target = []
-        with open(self.annotation_file_name, "r", encoding="UTF-8") as f:
-            for line in f.readlines():
-                image_path, image_target = line.strip().split(" ")
-                images_path.append(self.dataroot / image_path)  # Combine paths
-                images_target.append(image_target)
-        return images_path, images_target
+        images = self.dataset['image']
+        labels = self.dataset['label']
+        return images, labels
 
-    def __getitem__(self, index: int) -> [str, torch.Tensor, torch.Tensor, torch.Tensor]:
-        image_path = self.images_path[index]
+    def __getitem__(self, index: int):
+        images = self.images
 
         # Read image in grayscale and resize (combine steps)
-        image = cv2.cvtColor(cv2.imread(str(image_path)), cv2.COLOR_BGR2GRAY)
+        image = cv2.cvtColor(images, cv2.COLOR_BGR2GRAY)
         image = cv2.resize(image, (self.image_width, self.image_height), interpolation=cv2.INTER_CUBIC)
         image = np.reshape(image, (self.image_height, self.image_width, 1))
 
@@ -68,14 +63,11 @@ class ImageDataset(Dataset):
         image = ImageProcessing.img2tensor(image, mean=self.mean, std=self.std)
 
         if self.mode == "train":
-            target = [self.labels_dict[character] for character in self.images_target[index]]
-            target = torch.LongTensor(target)
-            target_length = torch.LongTensor([len(target)])
+            target = self.dataset['label']
+            target_length = len(target)
             return image, target, target_length
         elif self.mode == "valid" or self.mode == "test":
-            return image_path, image, self.images_target[index]
+            return image, self.dataset['label']
         else:
             raise ValueError("Unsupported data processing model, please use `train`, `valid` or `test`.")
 
-    def __len__(self):
-        return len(self.images_path)
