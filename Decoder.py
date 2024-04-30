@@ -2,7 +2,7 @@ import torch
 import numpy as np
 
 __all__ = [
-    "decoder"
+    "ctc_decoder"
 ]
 
 def reconstruct(labels, blank: int = 0) -> list:
@@ -14,12 +14,12 @@ def reconstruct(labels, blank: int = 0) -> list:
         prev = label
     return new_labels
 
-def greedy_decode(seq_log_probas, blank: int=0):
+def greedy_decode(seq_log_probas, blank: int = 0):
     labels = torch.argmax(seq_log_probas, dim=-1)
     return reconstruct(labels.cpu().numpy(), blank=blank)  # Process on CPU
 
 
-def ctc_decode(log_probas: torch.Tensor, chars: dict, blank=0):
+def ctc_decoder(log_probas: torch.Tensor, chars: dict, blank=0):
     seq_log_probas = np.transpose(log_probas.cpu().numpy(), (1, 0, 2))
 
     # Define decoded label and list of char names
